@@ -1,11 +1,11 @@
 import axios from 'axios';
+import { API_URL } from '../environmentsVar/envVar';
 
 
-const API_URL = 'https://legitimate-mada-carlosmendoza-8db81967.koyeb.app/';
 
-export const registerUser = async (name: string, email: string, password: string) => {
+export const registerUser = async (name:string, email:string, password: string) => {
   try {
-    const response = await axios.post(`${API_URL}usuario/`, {
+    const response = await axios.post(`${API_URL}registro/`, {
       nombre: name,
       email: email,
       password: password,
@@ -20,3 +20,4 @@ export const registerUser = async (name: string, email: string, password: string
     throw error;
   }
 };
+

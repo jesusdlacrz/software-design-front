@@ -1,14 +1,31 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/loginUser.service'; // Asegúrate de que la ruta sea correcta
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/home');
+    try {
+      const response = await loginUser(username, password);
+      console.log('Login response:', response);
+      if (response) {
+        console.log('Login successful!');
+        toast.success('Login successful!', {
+          onOpen: () => navigate('/home'), 
+        });
+      } else {
+        toast.error('Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+    }
   };
 
   return (
@@ -23,7 +40,6 @@ const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 border rounded"
-              required
             />
           </div>
           <div>
@@ -33,27 +49,16 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2 border rounded"
-              required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full py-2 font-semibold text-white bg-blue-500 rounded hover:bg-blue-600"
-          >
+          <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
             Iniciar Sesión
           </button>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };
-
-<p className="text-center">
-  ¿No tienes una cuenta?{' '}
-  <a href="/register" className="text-blue-500 hover:underline">
-    Regístrate aquí
-  </a>
-</p>
-
 
 export default Login;
