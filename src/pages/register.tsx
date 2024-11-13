@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { registerUser } from '../services/registerUser.service'; 
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -7,10 +10,16 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulación de registro exitoso
-    navigate('/login'); 
+    try {
+      await registerUser(name, email, password);
+      toast.success('Usuario registrado con éxito');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Error al registrar el usuario. Por favor, use un correo válido.');
+      console.error('Error al registrar el usuario:', error);
+    }
   };
 
   return (
@@ -48,24 +57,14 @@ const Register = () => {
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full py-2 font-semibold text-white bg-blue-500 rounded hover:bg-blue-600"
-          >
+          <button type="submit" className="w-full p-2 font-semibold text-white bg-blue-500 rounded">
             Registrarse
           </button>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };
-
-<p className="text-center">
-  ¿Ya tienes una cuenta?{' '}
-  <a href="/login" className="text-blue-500 hover:underline">
-    Inicia sesión aquí
-  </a>
-</p>
-
 
 export default Register;
