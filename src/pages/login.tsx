@@ -16,8 +16,10 @@ const Login = () => {
       console.log('Login response:', response);
       if (response) {
         console.log('Login successful!');
+        console.log('User ID:', response.user_id);
+        localStorage.setItem('userId', response.user_id);
         toast.success('Login successful!', {
-          onOpen: () => navigate('/home'), 
+          onClose: () => navigate('/home'), 
         });
       } else {
         toast.error('Login failed');
