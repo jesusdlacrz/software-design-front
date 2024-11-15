@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { API_URL } from '../environmentsVar/envVar';
 
-
-
 export const registerUser = async (name:string, email:string, password: string) => {
   try {
     const response = await axios.post(`${API_URL}registro/`, {

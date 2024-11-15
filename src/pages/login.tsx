@@ -19,7 +19,7 @@ const Login = () => {
         console.log('User ID:', response.user_id);
         localStorage.setItem('userId', response.user_id);
         toast.success('Login successful!', {
-          onClose: () => navigate('/home'), 
+          onClose: () => navigate('/teams'), 
         });
       } else {
         toast.error('Login failed');
