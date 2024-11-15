@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTeamProjects } from '../services/projectsUser.service';
+import { getTeamProjects, createProject, deleteProject } from '../services/projectsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 interface Project {
   id: number;
@@ -15,6 +17,13 @@ interface Project {
 const Projects = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [newProject, setNewProject] = useState({
+    nombre_proyecto: '',
+    descripcion_proyecto: '',
+    fecha_inicio_proyecto: '',
+    fecha_fin_proyecto: '',
+    estado_proyecto: '',
+  });
   const teamId = localStorage.getItem('teamId');
 
   useEffect(() => {
@@ -36,6 +45,46 @@ const Projects = () => {
     fetchProjects();
   }, [teamId, navigate]);
 
+  const handleCreateProject = async () => {
+    if (teamId) {
+      try {
+        const createdProject = await createProject({
+          ...newProject,
+          equipo_trabajo: parseInt(teamId),
+        });
+        setProjects([...projects, createdProject]);
+        toast.success('Proyecto creado con éxito');
+      } catch {
+        toast.error('Error al crear proyecto');
+      }
+    }
+  };
+
+  const handleDeleteProject = async (projectId: number) => {
+    confirmAlert({
+      title: 'Confirmar eliminación',
+      message: '¿Está seguro de que desea eliminar este proyecto?',
+      buttons: [
+        {
+          label: 'Sí',
+          onClick: async () => {
+            try {
+              await deleteProject(projectId);
+              setProjects(projects.filter(project => project.id !== projectId));
+              toast.success('Proyecto eliminado con éxito');
+            } catch {
+              toast.error('Error al eliminar proyecto');
+            }
+          }
+        },
+        {
+          label: 'No',
+          onClick: () => {}
+        }
+      ]
+    });
+  };
+
   const handleProjectClick = (projectId: number) => {
     navigate(`/teams/${teamId}/projects/${projectId}`);
   };
@@ -43,6 +92,43 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold mb-4">Proyectos del Equipo {teamId}</h1>
+      
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Nombre del Proyecto"
+          value={newProject.nombre_proyecto}
+          onChange={(e) => setNewProject({ ...newProject, nombre_proyecto: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Descripción"
+          value={newProject.descripcion_proyecto}
+          onChange={(e) => setNewProject({ ...newProject, descripcion_proyecto: e.target.value })}
+        />
+        <input
+          type="date"
+          placeholder="Fecha Inicio"
+          value={newProject.fecha_inicio_proyecto}
+          onChange={(e) => setNewProject({ ...newProject, fecha_inicio_proyecto: e.target.value })}
+        />
+        <input
+          type="date"
+          placeholder="Fecha Fin"
+          value={newProject.fecha_fin_proyecto}
+          onChange={(e) => setNewProject({ ...newProject, fecha_fin_proyecto: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Estado"
+          value={newProject.estado_proyecto}
+          onChange={(e) => setNewProject({ ...newProject, estado_proyecto: e.target.value })}
+        />
+        <button onClick={handleCreateProject} className="bg-blue-500 text-white p-2 rounded">
+          Crear Proyecto
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.map((project) => (
           <div
@@ -56,6 +142,15 @@ const Projects = () => {
             <p className="text-gray-500">
               Fecha inicio: {project.fecha_inicio_proyecto} - Fecha fin: {project.fecha_fin_proyecto}
             </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteProject(project.id);
+              }}
+              className="mt-2 bg-red-500 text-white p-1 rounded"
+            >
+              Eliminar Proyecto
+            </button>
           </div>
         ))}
       </div>

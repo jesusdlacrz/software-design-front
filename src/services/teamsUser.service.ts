@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_URL } from "../environmentsVar/envVar";
 
-// Obtener equipos de trabajo por usuario
+// obtener equipos de trabajo por usuario
 export const getUserTeams = async (userId: string) => {
   try {
     const response = await axios.get(`${API_URL}usuariosEquipo/getEquipoTrabajoPerUser/`, {
@@ -21,10 +21,9 @@ export const getUserTeams = async (userId: string) => {
   }
 };
 
-// Crear un nuevo equipo y asignarlo al usuario como creador
+// crear un nuevo equipo y asignarlo al usuario como creador
 export const createTeam = async (userId: string, nombre_equipo: string, descripcion_equipo: string) => {
   try {
-    // Paso 1: Crear el equipo
     const equipoResponse = await axios.post(
       `${API_URL}equipos/`,
       {
@@ -41,15 +40,13 @@ export const createTeam = async (userId: string, nombre_equipo: string, descripc
     );
 
     const newTeam = equipoResponse.data;
-
-    // Paso 2: Relacionar el equipo creado con el usuario como creador
     await axios.post(
       `${API_URL}usuariosEquipo/`,
       {
         usuario: userId,
-        equipo_trabajo: newTeam.id, // Usar el ID del equipo creado
+        equipo_trabajo: newTeam.id, 
         es_creador: true,
-        fecha_union: new Date().toISOString().split("T")[0], // Fecha actual en formato YYYY-MM-DD
+        fecha_union: new Date().toISOString().split("T")[0], 
       },
       {
         headers: {
@@ -71,7 +68,7 @@ export const createTeam = async (userId: string, nombre_equipo: string, descripc
   }
 };
 
-// Eliminar un equipo
+// eliminar un equipo
 export const deleteTeam = async (teamId: number) => {
   try {
     const response = await axios.delete(`${API_URL}equipos/${teamId}/`, {
@@ -91,7 +88,7 @@ export const deleteTeam = async (teamId: number) => {
 };
 
 
-// Eliminar usuario del equipo
+// eliminar usuario del equipo
 export const deleteUsuarioEquipo = async (usuarioEquipoId: number) => {
   try {
     const response = await axios.delete(`${API_URL}usuariosEquipo/${usuarioEquipoId}/`, {
