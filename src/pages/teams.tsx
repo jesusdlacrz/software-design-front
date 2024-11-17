@@ -47,6 +47,7 @@ const Teams = () => {
   const [showModal, setShowModal] = useState<{ [key: number]: boolean }>({});
   const [memberFilters, setMemberFilters] = useState<{ [key: number]: string }>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [teamFilter, setTeamFilter] = useState(''); // Nuevo estado para el filtro
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -200,16 +201,28 @@ const Teams = () => {
     setMemberFilters({ ...memberFilters, [teamId]: name });
   };
 
+  // Filtrar equipos según el término de búsqueda
+  const filteredTeams = teams.filter((team) =>
+    team.nombre_equipo.toLowerCase().includes(teamFilter.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gray-800 p-8">
       <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Mis Equipos</h1>
 
       <div className="flex justify-center mb-6">
+        <input
+          type="text"
+          value={teamFilter}
+          onChange={(e) => setTeamFilter(e.target.value)}
+          placeholder="Buscar equipo por nombre"
+          className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        />
         <button
           onClick={() => setIsCreating(true)}
           className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
         >
-          Crear Nuevo Equipo
+          Nuevo Equipo
         </button>
       </div>
       {isCreating && (
@@ -269,7 +282,7 @@ const Teams = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teams.map((team) => (
+          {filteredTeams.map((team) => (
             <div
               key={team.id}
               className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out"
@@ -292,7 +305,7 @@ const Teams = () => {
                   <div className="fixed inset-0 flex items-center justify-center z-50">
                     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
                     <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
-                      <h2 className="text-xl font-semibold text-white mb-4">Search email</h2>
+                      <h2 className="text-xl font-semibold text-white mb-4">Buscar por email</h2>
                       <input
                         type="text"
                         value={emailFilters[team.id] || ''}
@@ -366,7 +379,7 @@ const Teams = () => {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="h-5 w-5 mr-2"
+                      className="h-5 w-5"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -376,7 +389,6 @@ const Teams = () => {
                         strokeLinecap="round"
                       ></path>
                     </svg>
-                    Eliminar
                   </button>
                 </div>
               </div>
