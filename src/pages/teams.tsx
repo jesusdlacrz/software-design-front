@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserTeams, createTeam, deleteTeam, deleteUsuarioEquipo, getAllUsers, addUserToTeam } from '../services/teamsUser.service';
+import { getUserTeams, createTeam, deleteTeam, deleteUsuarioEquipo, getAllUsers, addUserToTeam, getTeamMembers } from '../services/teamsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
@@ -18,15 +18,23 @@ interface User {
   email: string;
 }
 
+interface TeamMember {
+  id: number;
+  nombre: string;
+  email: string;
+  es_creador: boolean;
+}
+
 const Teams = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<{ [key: number]: User[] }>({});
+  const [emailFilters, setEmailFilters] = useState<{ [key: number]: string }>({});
+  const [selectedUserIds, setSelectedUserIds] = useState<{ [key: number]: number | null }>({});
+  const [teamMembers, setTeamMembers] = useState<{ [key: number]: TeamMember[] }>({});
   const [nombreEquipo, setNombreEquipo] = useState('');
   const [descripcionEquipo, setDescripcionEquipo] = useState('');
-  const [emailFilter, setEmailFilter] = useState<{ [key: number]: string }>({});
-  const [selectedUserId, setSelectedUserId] = useState<{ [key: number]: number | null }>({});
   const [isCreating, setIsCreating] = useState(false);
   const userId = localStorage.getItem('userId');
 
@@ -119,26 +127,37 @@ const Teams = () => {
   };
 
   const handleFilterUsers = (teamId: number, email: string) => {
-    setEmailFilter({ ...emailFilter, [teamId]: email });
+    setEmailFilters({ ...emailFilters, [teamId]: email });
     const filtered = users.filter(user => user.email.includes(email));
     setFilteredUsers({ ...filteredUsers, [teamId]: filtered });
   };
 
   const handleAddUserToTeam = async (teamId: number) => {
-    if (selectedUserId[teamId] === null) {
+    const selectedUserId = selectedUserIds[teamId];
+    if (selectedUserId === null) {
       toast.error("Por favor seleccione un usuario");
       return;
     }
 
     try {
-      await addUserToTeam(selectedUserId[teamId]!, teamId);
+      await addUserToTeam(selectedUserId, teamId);
       toast.success("Usuario añadido al equipo exitosamente");
-      setSelectedUserId({ ...selectedUserId, [teamId]: null });
-      setEmailFilter({ ...emailFilter, [teamId]: '' });
+      setSelectedUserIds({ ...selectedUserIds, [teamId]: null });
+      setEmailFilters({ ...emailFilters, [teamId]: '' });
       setFilteredUsers({ ...filteredUsers, [teamId]: [] });
     } catch (error) {
       console.error("Error al añadir usuario al equipo:", error);
       toast.error("Error al añadir usuario al equipo");
+    }
+  };
+
+  const fetchTeamMembers = async (teamId: number) => {
+    try {
+      const members = await getTeamMembers(teamId);
+      setTeamMembers({ ...teamMembers, [teamId]: members });
+    } catch (error) {
+      console.error("Error al obtener miembros del equipo:", error);
+      toast.error("Error al obtener miembros del equipo");
     }
   };
 
@@ -192,17 +211,17 @@ const Teams = () => {
             <div className="mt-4">
               <input
                 type="text"
-                value={emailFilter[team.id] || ''}
+                value={emailFilters[team.id] || ''}
                 onChange={(e) => handleFilterUsers(team.id, e.target.value)}
                 placeholder="Filtrar por correo"
                 className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <ul className="bg-gray-600 rounded-lg shadow-md">
-                {filteredUsers[team.id]?.map(user => (
+                {(filteredUsers[team.id] || []).map(user => (
                   <li
                     key={user.id}
-                    className={`p-2 cursor-pointer ${selectedUserId[team.id] === user.id ? 'bg-indigo-500' : 'hover:bg-gray-500'}`}
-                    onClick={() => setSelectedUserId({ ...selectedUserId, [team.id]: user.id })}
+                    className={`p-2 cursor-pointer ${selectedUserIds[team.id] === user.id ? 'bg-indigo-500' : 'hover:bg-gray-500'}`}
+                    onClick={() => setSelectedUserIds({ ...selectedUserIds, [team.id]: user.id })}
                   >
                     {user.email}
                   </li>
@@ -215,6 +234,19 @@ const Teams = () => {
                 Añadir Usuario
               </button>
             </div>
+            <button
+              onClick={() => fetchTeamMembers(team.id)}
+              className="mt-2 w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition ease-in-out"
+            >
+              Ver Miembros
+            </button>
+            <ul className="bg-gray-600 rounded-lg shadow-md mt-2">
+              {(teamMembers[team.id] || []).map(member => (
+                <li key={member.id} className="p-2 text-white">
+                  {member.nombre} ({member.email}) {member.es_creador && <span className="text-yellow-500">(Creador)</span>}
+                </li>
+              ))}
+            </ul>
             <button
               onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
               className="inline-flex items-center mt-2 px-4 py-2 bg-red-600 transition ease-in-out delay-75 hover:bg-red-700 text-white text-sm font-medium rounded-md"

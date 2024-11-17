@@ -4,8 +4,8 @@ import { API_URL } from "../environmentsVar/envVar";
 // Obtener miembros de un equipo
 export const getTeamMembers = async (teamId: number) => {
   try {
-    const response = await axios.get(`${API_URL}usuariosEquipo/`, {
-      params: { equipo_trabajo: teamId },
+    const response = await axios.get(`${API_URL}usuariosEquipo/getUserPerEquipoTrabajo/`, {
+      params: { equipo_trabajo_id: teamId },
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       },
