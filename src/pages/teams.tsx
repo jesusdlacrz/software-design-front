@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserTeams, createTeam, deleteTeam, deleteUsuarioEquipo, getAllUsers, addUserToTeam, getTeamMembers } from '../services/teamsUser.service';
+import {
+  getUserTeams,
+  createTeam,
+  deleteTeam,
+  deleteUsuarioEquipo,
+  getAllUsers,
+  addUserToTeam,
+  getTeamMembers,
+} from '../services/teamsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
@@ -38,6 +46,7 @@ const Teams = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showModal, setShowModal] = useState<{ [key: number]: boolean }>({});
   const [memberFilters, setMemberFilters] = useState<{ [key: number]: string }>({});
+  const [isLoading, setIsLoading] = useState(true);
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -47,12 +56,16 @@ const Teams = () => {
           const fetchedTeams = await getUserTeams(userId);
           setTeams(fetchedTeams);
           // Fetch team members for each team
-          fetchedTeams.forEach(async (team: Team) => {
-            await fetchTeamMembers(team.id);
-          });
+          await Promise.all(
+            fetchedTeams.map(async (team: Team) => {
+              await fetchTeamMembers(team.id);
+            })
+          );
         } catch (error) {
           console.error('Error al cargar los equipos:', error);
           toast.error('Error al cargar los equipos');
+        } finally {
+          setIsLoading(false);
         }
       } else {
         toast.error('Usuario no autenticado');
@@ -81,12 +94,12 @@ const Teams = () => {
 
   const handleCreateTeam = async () => {
     if (!nombreEquipo || !descripcionEquipo) {
-      toast.error("Por favor complete todos los campos");
+      toast.error('Por favor complete todos los campos');
       return;
     }
 
     if (!userId) {
-      toast.error("Usuario no autenticado");
+      toast.error('Usuario no autenticado');
       return;
     }
 
@@ -96,11 +109,11 @@ const Teams = () => {
       setNombreEquipo('');
       setDescripcionEquipo('');
       setIsCreating(false);
-      toast.success("Equipo creado y asignado exitosamente");
+      toast.success('Equipo creado y asignado exitosamente');
       await fetchTeamMembers(newTeam.id); // Fetch members for the new team
     } catch (error) {
-      console.error("Error en handleCreateTeam:", error);
-      toast.error("Error al crear y asignar el equipo");
+      console.error('Error en handleCreateTeam:', error);
+      toast.error('Error al crear y asignar el equipo');
     }
   };
 
@@ -117,25 +130,25 @@ const Teams = () => {
                 await deleteUsuarioEquipo(usuarioEquipoId);
               }
               await deleteTeam(teamId);
-              setTeams(teams.filter(team => team.id !== teamId));
-              toast.success("Equipo eliminado exitosamente");
+              setTeams(teams.filter((team) => team.id !== teamId));
+              toast.success('Equipo eliminado exitosamente');
             } catch (error) {
-              console.error("Error en handleDeleteTeam:", error);
-              toast.error("Error al eliminar el equipo");
+              console.error('Error en handleDeleteTeam:', error);
+              toast.error('Error al eliminar el equipo');
             }
-          }
+          },
         },
         {
           label: 'No',
-          onClick: () => { }
-        }
-      ]
+          onClick: () => {},
+        },
+      ],
     });
   };
 
   const handleFilterUsers = (teamId: number, email: string) => {
     setEmailFilters({ ...emailFilters, [teamId]: email });
-    const filtered = users.filter(user => user.email.includes(email));
+    const filtered = users.filter((user) => user.email.includes(email));
     setFilteredUsers({ ...filteredUsers, [teamId]: filtered });
   };
 
@@ -148,38 +161,38 @@ const Teams = () => {
   const handleAddUserToTeam = async (teamId: number) => {
     const selectedUserId = selectedUserIds[teamId];
     if (selectedUserId === null) {
-      toast.error("Por favor seleccione un usuario");
+      toast.error('Por favor seleccione un usuario');
       return;
     }
 
     // Verificar si el usuario ya es miembro del equipo
     const members = teamMembers[teamId] || [];
-    if (members.some(member => member.id === selectedUserId)) {
-      toast.error("El usuario ya es miembro del equipo. Intente con otro usuario.");
+    if (members.some((member) => member.id === selectedUserId)) {
+      toast.error('El usuario ya es miembro del equipo. Intente con otro usuario.');
       return;
     }
 
     try {
       await addUserToTeam(selectedUserId, teamId);
-      toast.success("Usuario añadido al equipo exitosamente");
+      toast.success('Usuario añadido al equipo exitosamente');
       setSelectedUserIds({ ...selectedUserIds, [teamId]: null });
       setEmailFilters({ ...emailFilters, [teamId]: '' });
       setFilteredUsers({ ...filteredUsers, [teamId]: [] });
       setShowModal({ ...showModal, [teamId]: false });
       await fetchTeamMembers(teamId); // Actualizar la lista de miembros del equipo
     } catch (error) {
-      console.error("Error al añadir usuario al equipo:", error);
-      toast.error("Error al añadir usuario al equipo");
+      console.error('Error al añadir usuario al equipo:', error);
+      toast.error('Error al añadir usuario al equipo');
     }
   };
 
   const fetchTeamMembers = async (teamId: number) => {
     try {
       const members = await getTeamMembers(teamId);
-      setTeamMembers(prevState => ({ ...prevState, [teamId]: members }));
+      setTeamMembers((prevState) => ({ ...prevState, [teamId]: members }));
     } catch (error) {
-      console.error("Error al obtener miembros del equipo:", error);
-      toast.error("Error al obtener miembros del equipo");
+      console.error('Error al obtener miembros del equipo:', error);
+      toast.error('Error al obtener miembros del equipo');
     }
   };
 
@@ -221,7 +234,7 @@ const Teams = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setIsCreating(false)}
-                className="px-2 py-2  text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
+                className="px-2 py-2 text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
               >
                 Cancelar
               </button>
@@ -235,108 +248,142 @@ const Teams = () => {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teams.map((team) => (
-          <div key={team.id} className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out">
-            <h2
-              className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition break-words"
-              onClick={() => handleTeamClick(team.id)}
+      {isLoading ? (
+        // Mostrar skeleton loader
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="animate-pulse flex flex-col items-center gap-4 p-6 bg-gray-700 rounded-lg"
             >
-              {team.nombre_equipo}
-            </h2>
-            <p className="text-gray-300 mt-2 break-words">{team.descripcion_equipo}</p>
-            <div className="mt-4">
-              <button
-                onClick={() => setShowModal({ ...showModal, [team.id]: true })}
-                className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+              <div>
+                <div className="w-48 h-6 bg-slate-400 rounded-md"></div>
+                <div className="w-28 h-4 bg-slate-400 mt-3 rounded-md"></div>
+              </div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-1/2 rounded-md"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {teams.map((team) => (
+            <div
+              key={team.id}
+              className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out"
+            >
+              <h2
+                className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition break-words"
+                onClick={() => handleTeamClick(team.id)}
               >
-                Añadir Usuario
-              </button>
-              {showModal[team.id] && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-                  <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
-                    <h2 className="text-xl font-semibold text-white mb-4">Search email</h2>
-                    <input
-                      type="text"
-                      value={emailFilters[team.id] || ''}
-                      onChange={(e) => handleFilterUsers(team.id, e.target.value)}
-                      placeholder="Filtrar por correo"
-                      className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    />
-                    <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
-                      {(filteredUsers[team.id] || []).map(user => (
-                        <li
-                          key={user.id}
-                          className={`p-2 cursor-pointer ${selectedUserIds[team.id] === user.id ? 'bg-indigo-500' : 'hover:bg-gray-500'}`}
-                          onClick={() => handleSelectUser(team.id, user)}
+                {team.nombre_equipo}
+              </h2>
+              <p className="text-gray-300 mt-2 break-words">{team.descripcion_equipo}</p>
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowModal({ ...showModal, [team.id]: true })}
+                  className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+                >
+                  Añadir Usuario
+                </button>
+                {showModal[team.id] && (
+                  <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+                    <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+                      <h2 className="text-xl font-semibold text-white mb-4">Search email</h2>
+                      <input
+                        type="text"
+                        value={emailFilters[team.id] || ''}
+                        onChange={(e) => handleFilterUsers(team.id, e.target.value)}
+                        placeholder="Filtrar por correo"
+                        className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      />
+                      <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
+                        {(filteredUsers[team.id] || []).map((user) => (
+                          <li
+                            key={user.id}
+                            className={`p-2 cursor-pointer ${
+                              selectedUserIds[team.id] === user.id
+                                ? 'bg-indigo-500'
+                                : 'hover:bg-gray-500'
+                            }`}
+                            onClick={() => handleSelectUser(team.id, user)}
+                          >
+                            {user.email}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex justify-end mt-4">
+                        <button
+                          onClick={() => setShowModal({ ...showModal, [team.id]: false })}
+                          className="px-2 py-2 text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
                         >
-                          {user.email}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex justify-end mt-4">
-                      <button
-                        onClick={() => setShowModal({ ...showModal, [team.id]: false })}
-                        className="px-2 py-2  text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={() => handleAddUserToTeam(team.id)}
-                        className="px-6 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
-                      >
-                        Añadir
-                      </button>
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleAddUserToTeam(team.id)}
+                          className="px-6 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+                        >
+                          Añadir
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-            <div className="mt-4 mb-16">
-              <input
-                type="text"
-                value={memberFilters[team.id] || ''}
-                onChange={(e) => handleFilterMembers(team.id, e.target.value)}
-                placeholder="Buscar colaborador"
-                className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
-                {(teamMembers[team.id] || []).filter(member => member.nombre.includes(memberFilters[team.id] || '')).map(member => (
-                  <li key={member.id} className="p-2 text-white">
-                    {member.nombre} ({member.email}) {member.es_creador && <span className="text-yellow-500">(Creador)</span>}
-                  </li>
-                ))}
-              </ul>
-
-            </div>
-            <div className=''>
-              <div className="flex justify-end mt-4 absolute right-6 bottom-6">
-                <button
-                  onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
-                  className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
-                >
-                  <svg
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
+                )}
+              </div>
+              <div className="mt-4 mb-16">
+                <input
+                  type="text"
+                  value={memberFilters[team.id] || ''}
+                  onChange={(e) => handleFilterMembers(team.id, e.target.value)}
+                  placeholder="Buscar colaborador"
+                  className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+                <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
+                  {(teamMembers[team.id] || [])
+                    .filter((member) =>
+                      member.nombre.includes(memberFilters[team.id] || '')
+                    )
+                    .map((member) => (
+                      <li key={member.id} className="p-2 text-white">
+                        {member.nombre} ({member.email}){' '}
+                        {member.es_creador && (
+                          <span className="text-yellow-500">(Creador)</span>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div className="">
+                <div className="flex justify-end mt-4 absolute right-6 bottom-6">
+                  <button
+                    onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
+                    className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
                   >
-                    <path
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      strokeWidth="2"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    ></path>
-                  </svg>
-                  Eliminar
-                </button>
+                    <svg
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      ></path>
+                    </svg>
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
