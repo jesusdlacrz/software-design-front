@@ -35,7 +35,6 @@ const Teams = () => {
         navigate('/login');
       }
     };
-
     fetchTeams();
   }, [userId, navigate]);
 
@@ -98,61 +97,71 @@ const Teams = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-4xl font-bold mb-6 text-center text-gray-800">Mis Equipos</h1>
+    <div className="min-h-screen bg-gray-800 p-8">
+      <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Mis Equipos</h1>
 
-      {/* Botón para desplegar formulario de creación de equipo */}
       <div className="flex justify-center mb-6">
-        <button
-          onClick={() => setIsCreating(!isCreating)}
-          className="text-blue-600 hover:text-blue-700 transition ease-in-out text-sm px-4 py-2 border border-blue-600 rounded-full focus:outline-none"
-        >
-          {isCreating ? 'Cancelar' : 'Crear Nuevo Equipo'}
-        </button>
-      </div>
-
-      {/* Formulario de creación de equipo con animación */}
+            <button
+              onClick={() => setIsCreating(!isCreating)}
+              className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
+            >
+              {isCreating ? 'Cancelar' : 'Crear Nuevo Equipo'}
+            </button>
+          </div>
       {isCreating && (
-        <div className="max-w-md mx-auto mb-8 p-6 bg-white rounded-lg shadow-md transform transition duration-300 ease-in-out scale-100">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Nuevo Equipo</h2>
+        <div className="max-w-md mx-auto mb-8 p-6 bg-gray-700 rounded-lg shadow-md transform transition duration-300 ease-in-out scale-100">
+          <h2 className="text-2xl font-semibold text-white mb-4">Nuevo Equipo</h2>
           <input
             type="text"
             value={nombreEquipo}
             onChange={(e) => setNombreEquipo(e.target.value)}
             placeholder="Nombre del equipo"
-            className="mb-3 p-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+            className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+
           <input
             type="text"
             value={descripcionEquipo}
             onChange={(e) => setDescripcionEquipo(e.target.value)}
             placeholder="Descripción del equipo"
-            className="mb-3 p-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+            className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
           <button
             onClick={handleCreateTeam}
-            className="w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition ease-in-out"
+            className="w-full px-4 py-2 bg-indigo-500 text-white font-semibold rounded hover:bg-indigo-600 transition ease-in-out"
           >
             Crear Equipo
           </button>
         </div>
       )}
-
-      {/* Lista de equipos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {teams.map((team) => (
-          <div key={team.id} className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition ease-in-out">
+          <div key={team.id} className="p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out">
             <h2
-              className="text-xl font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition"
+              className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition"
               onClick={() => handleTeamClick(team.id)}
             >
               {team.nombre_equipo}
             </h2>
-            <p className="text-gray-600 mt-2">{team.descripcion_equipo}</p>
+            <p className="text-gray-300 mt-2">{team.descripcion_equipo}</p>
             <button
               onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
-              className="mt-4 px-4 py-2 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition ease-in-out"
+              className="inline-flex items-center mt-2 px-4 py-2 bg-red-600 transition ease-in-out delay-75 hover:bg-red-700 text-white text-sm font-medium rounded-md"
             >
+              <svg
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-5 w-5 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                ></path>
+              </svg>
               Eliminar
             </button>
           </div>
