@@ -24,6 +24,9 @@ const Projects = () => {
     fecha_fin_proyecto: '',
     estado_proyecto: '',
   });
+  const [isCreating, setIsCreating] = useState(false);
+  const [projectFilter, setProjectFilter] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const teamId = localStorage.getItem('teamId');
 
   useEffect(() => {
@@ -35,6 +38,8 @@ const Projects = () => {
         } catch (error) {
           console.error('Error al cargar los proyectos:', error);
           toast.error('Error al cargar los proyectos');
+        } finally {
+          setIsLoading(false);
         }
       } else {
         toast.error('Equipo no seleccionado');
@@ -46,6 +51,17 @@ const Projects = () => {
   }, [teamId, navigate]);
 
   const handleCreateProject = async () => {
+    if (
+      !newProject.nombre_proyecto ||
+      !newProject.descripcion_proyecto ||
+      !newProject.fecha_inicio_proyecto ||
+      !newProject.fecha_fin_proyecto ||
+      !newProject.estado_proyecto
+    ) {
+      toast.error('Por favor completa todos los campos');
+      return;
+    }
+
     if (teamId) {
       try {
         const createdProject = await createProject({
@@ -54,6 +70,14 @@ const Projects = () => {
         });
         setProjects([...projects, createdProject]);
         toast.success('Proyecto creado con éxito');
+        setNewProject({
+          nombre_proyecto: '',
+          descripcion_proyecto: '',
+          fecha_inicio_proyecto: '',
+          fecha_fin_proyecto: '',
+          estado_proyecto: '',
+        });
+        setIsCreating(false);
       } catch {
         toast.error('Error al crear proyecto');
       }
@@ -70,18 +94,18 @@ const Projects = () => {
           onClick: async () => {
             try {
               await deleteProject(projectId);
-              setProjects(projects.filter(project => project.id !== projectId));
+              setProjects(projects.filter((project) => project.id !== projectId));
               toast.success('Proyecto eliminado con éxito');
             } catch {
               toast.error('Error al eliminar proyecto');
             }
-          }
+          },
         },
         {
           label: 'No',
-          onClick: () => {}
-        }
-      ]
+          onClick: () => {},
+        },
+      ],
     });
   };
 
@@ -89,71 +113,159 @@ const Projects = () => {
     navigate(`/teams/${teamId}/projects/${projectId}`);
   };
 
+  const filteredProjects = projects.filter((project) =>
+    project.nombre_proyecto.toLowerCase().includes(projectFilter.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold mb-4">Proyectos del Equipo {teamId}</h1>
-      
-      <div className="mb-4">
+    <div className="min-h-screen bg-gray-800 p-8">
+      <h1 className="text-3xl font-extrabold mb-6 text-center text-white">
+        Proyectos del Equipo {teamId}
+      </h1>
+
+      <div className="flex justify-center mb-6">
         <input
           type="text"
-          placeholder="Nombre del Proyecto"
-          value={newProject.nombre_proyecto}
-          onChange={(e) => setNewProject({ ...newProject, nombre_proyecto: e.target.value })}
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
+          placeholder="Buscar proyecto por nombre"
+          className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-64"
         />
-        <input
-          type="text"
-          placeholder="Descripción"
-          value={newProject.descripcion_proyecto}
-          onChange={(e) => setNewProject({ ...newProject, descripcion_proyecto: e.target.value })}
-        />
-        <input
-          type="date"
-          placeholder="Fecha Inicio"
-          value={newProject.fecha_inicio_proyecto}
-          onChange={(e) => setNewProject({ ...newProject, fecha_inicio_proyecto: e.target.value })}
-        />
-        <input
-          type="date"
-          placeholder="Fecha Fin"
-          value={newProject.fecha_fin_proyecto}
-          onChange={(e) => setNewProject({ ...newProject, fecha_fin_proyecto: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Estado"
-          value={newProject.estado_proyecto}
-          onChange={(e) => setNewProject({ ...newProject, estado_proyecto: e.target.value })}
-        />
-        <button onClick={handleCreateProject} className="bg-blue-500 text-white p-2 rounded">
-          Crear Proyecto
+        <button
+          onClick={() => setIsCreating(true)}
+          className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
+        >
+          Nuevo Proyecto
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className="p-4 bg-white rounded shadow cursor-pointer hover:bg-gray-50"
-            onClick={() => handleProjectClick(project.id)}
-          >
-            <h2 className="text-xl font-semibold">{project.nombre_proyecto}</h2>
-            <p className="text-gray-600">{project.descripcion_proyecto}</p>
-            <p className="text-gray-500">Estado: {project.estado_proyecto}</p>
-            <p className="text-gray-500">
-              Fecha inicio: {project.fecha_inicio_proyecto} - Fecha fin: {project.fecha_fin_proyecto}
-            </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteProject(project.id);
-              }}
-              className="mt-2 bg-red-500 text-white p-1 rounded"
-            >
-              Eliminar Proyecto
-            </button>
+      {isCreating && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+          <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <h2 className="text-2xl font-semibold text-white mb-4">Nuevo Proyecto</h2>
+            <input
+              type="text"
+              value={newProject.nombre_proyecto}
+              onChange={(e) => setNewProject({ ...newProject, nombre_proyecto: e.target.value })}
+              placeholder="Nombre del Proyecto"
+              className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <input
+              type="text"
+              value={newProject.descripcion_proyecto}
+              onChange={(e) =>
+                setNewProject({ ...newProject, descripcion_proyecto: e.target.value })
+              }
+              placeholder="Descripción"
+              className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <input
+              type="date"
+              value={newProject.fecha_inicio_proyecto}
+              onChange={(e) =>
+                setNewProject({ ...newProject, fecha_inicio_proyecto: e.target.value })
+              }
+              placeholder="Fecha Inicio"
+              className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <input
+              type="date"
+              value={newProject.fecha_fin_proyecto}
+              onChange={(e) =>
+                setNewProject({ ...newProject, fecha_fin_proyecto: e.target.value })
+              }
+              placeholder="Fecha Fin"
+              className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <input
+              type="text"
+              value={newProject.estado_proyecto}
+              onChange={(e) =>
+                setNewProject({ ...newProject, estado_proyecto: e.target.value })
+              }
+              placeholder="Estado"
+              className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setIsCreating(false)}
+                className="px-2 py-2 text-red-500 font-semibold rounded border border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateProject}
+                className="px-7 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+              >
+                Crear
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="animate-pulse flex flex-col items-center gap-4 p-6 bg-gray-700 rounded-lg"
+            >
+              <div>
+                <div className="w-48 h-6 bg-slate-400 rounded-md"></div>
+                <div className="w-28 h-4 bg-slate-400 mt-3 rounded-md"></div>
+              </div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-full rounded-md"></div>
+              <div className="h-7 bg-slate-400 w-1/2 rounded-md"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project) => (
+            <div
+              key={project.id}
+              className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out"
+              onClick={() => handleProjectClick(project.id)}
+            >
+              <h2 className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition break-words">
+                {project.nombre_proyecto}
+              </h2>
+              <p className="text-gray-300 mt-2 break-words">{project.descripcion_proyecto}</p>
+              <p className="text-gray-400">Estado: {project.estado_proyecto}</p>
+              <p className="text-gray-400">
+                Fecha inicio: {project.fecha_inicio_proyecto} - Fecha fin:{' '}
+                {project.fecha_fin_proyecto}
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteProject(project.id);
+                }}
+                className="absolute top-6 right-6 px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border border-red-600 transition ease-in-out"
+              >
+                <svg
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
