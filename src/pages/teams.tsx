@@ -127,7 +127,7 @@ const Teams = () => {
         },
         {
           label: 'No',
-          onClick: () => {}
+          onClick: () => { }
         }
       ]
     });
@@ -293,7 +293,7 @@ const Teams = () => {
                 </div>
               )}
             </div>
-            <div className="mt-4">
+            <div className="mt-4 mb-16">
               <input
                 type="text"
                 value={memberFilters[team.id] || ''}
@@ -308,27 +308,32 @@ const Teams = () => {
                   </li>
                 ))}
               </ul>
+
             </div>
-            <button
-              onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
-              className="mt-4 inline-flex px-4 py-2 text-red-500 font-semibold rounded border-dashed border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
-            >
-              <svg
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-5 w-5 mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                ></path>
-              </svg>
-              Eliminar
-            </button>
+            <div className=''>
+              <div className="flex justify-end mt-4 absolute right-6 bottom-6">
+                <button
+                  onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
+                  className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
+                >
+                  <svg
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    ></path>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>
