@@ -239,12 +239,12 @@ const Teams = () => {
         {teams.map((team) => (
           <div key={team.id} className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out">
             <h2
-              className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition"
+              className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition break-words"
               onClick={() => handleTeamClick(team.id)}
             >
               {team.nombre_equipo}
             </h2>
-            <p className="text-gray-300 mt-2">{team.descripcion_equipo}</p>
+            <p className="text-gray-300 mt-2 break-words">{team.descripcion_equipo}</p>
             <div className="mt-4">
               <button
                 onClick={() => setShowModal({ ...showModal, [team.id]: true })}
