@@ -47,7 +47,7 @@ const Teams = () => {
   const [showModal, setShowModal] = useState<{ [key: number]: boolean }>({});
   const [memberFilters, setMemberFilters] = useState<{ [key: number]: string }>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [teamFilter, setTeamFilter] = useState(''); // Nuevo estado para el filtro
+  const [teamFilter, setTeamFilter] = useState(''); // New state for the filter
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -63,13 +63,13 @@ const Teams = () => {
             })
           );
         } catch (error) {
-          console.error('Error al cargar los equipos:', error);
-          toast.error('Error al cargar los equipos');
+          console.error('Error loading teams:', error);
+          toast.error('Error loading teams');
         } finally {
           setIsLoading(false);
         }
       } else {
-        toast.error('Usuario no autenticado');
+        toast.error('User not authenticated');
         navigate('/login');
       }
     };
@@ -79,8 +79,8 @@ const Teams = () => {
         const fetchedUsers = await getAllUsers();
         setUsers(fetchedUsers);
       } catch (error) {
-        console.error('Error al cargar los usuarios:', error);
-        toast.error('Error al cargar los usuarios');
+        console.error('Error loading users:', error);
+        toast.error('Error loading users');
       }
     };
 
@@ -95,12 +95,12 @@ const Teams = () => {
 
   const handleCreateTeam = async () => {
     if (!nombreEquipo || !descripcionEquipo) {
-      toast.error('Por favor complete todos los campos');
+      toast.error('Please complete all fields');
       return;
     }
 
     if (!userId) {
-      toast.error('Usuario no autenticado');
+      toast.error('User not authenticated');
       return;
     }
 
@@ -110,21 +110,21 @@ const Teams = () => {
       setNombreEquipo('');
       setDescripcionEquipo('');
       setIsCreating(false);
-      toast.success('Equipo creado y asignado exitosamente');
+      toast.success('Team created and assigned successfully');
       await fetchTeamMembers(newTeam.id); // Fetch members for the new team
     } catch (error) {
-      console.error('Error en handleCreateTeam:', error);
-      toast.error('Error al crear y asignar el equipo');
+      console.error('Error in handleCreateTeam:', error);
+      toast.error('Error creating and assigning the team');
     }
   };
 
   const handleDeleteTeam = async (teamId: number, usuarioEquipoId?: number) => {
     confirmAlert({
-      title: 'Confirmar eliminación',
-      message: '¿Está seguro de que desea eliminar este equipo?',
+      title: 'Confirm deletion',
+      message: 'Are you sure you want to delete this team?',
       buttons: [
         {
-          label: 'Sí',
+          label: 'Yes',
           onClick: async () => {
             try {
               if (usuarioEquipoId) {
@@ -132,10 +132,10 @@ const Teams = () => {
               }
               await deleteTeam(teamId);
               setTeams(teams.filter((team) => team.id !== teamId));
-              toast.success('Equipo eliminado exitosamente');
+              toast.success('Team deleted successfully');
             } catch (error) {
-              console.error('Error en handleDeleteTeam:', error);
-              toast.error('Error al eliminar el equipo');
+              console.error('Error in handleDeleteTeam:', error);
+              toast.error('Error deleting the team');
             }
           },
         },
@@ -162,28 +162,28 @@ const Teams = () => {
   const handleAddUserToTeam = async (teamId: number) => {
     const selectedUserId = selectedUserIds[teamId];
     if (selectedUserId === null) {
-      toast.error('Por favor seleccione un usuario');
+      toast.error('Please select a user');
       return;
     }
 
-    // Verificar si el usuario ya es miembro del equipo
+    // Check if the user is already a team member
     const members = teamMembers[teamId] || [];
     if (members.some((member) => member.id === selectedUserId)) {
-      toast.error('El usuario ya es miembro del equipo. Intente con otro usuario.');
+      toast.error('The user is already a team member. Try another user.');
       return;
     }
 
     try {
       await addUserToTeam(selectedUserId, teamId);
-      toast.success('Usuario añadido al equipo exitosamente');
+      toast.success('User added to the team successfully');
       setSelectedUserIds({ ...selectedUserIds, [teamId]: null });
       setEmailFilters({ ...emailFilters, [teamId]: '' });
       setFilteredUsers({ ...filteredUsers, [teamId]: [] });
       setShowModal({ ...showModal, [teamId]: false });
-      await fetchTeamMembers(teamId); // Actualizar la lista de miembros del equipo
+      await fetchTeamMembers(teamId); // Update the team members list
     } catch (error) {
-      console.error('Error al añadir usuario al equipo:', error);
-      toast.error('Error al añadir usuario al equipo');
+      console.error('Error adding user to the team:', error);
+      toast.error('Error adding user to the team');
     }
   };
 
@@ -192,8 +192,8 @@ const Teams = () => {
       const members = await getTeamMembers(teamId);
       setTeamMembers((prevState) => ({ ...prevState, [teamId]: members }));
     } catch (error) {
-      console.error('Error al obtener miembros del equipo:', error);
-      toast.error('Error al obtener miembros del equipo');
+      console.error('Error fetching team members:', error);
+      toast.error('Error fetching team members');
     }
   };
 
@@ -201,47 +201,47 @@ const Teams = () => {
     setMemberFilters({ ...memberFilters, [teamId]: name });
   };
 
-  // Filtrar equipos según el término de búsqueda
+  // Filter teams based on the search term
   const filteredTeams = teams.filter((team) =>
     team.nombre_equipo.toLowerCase().includes(teamFilter.toLowerCase())
   );
 
   return (
     <div className="min-h-screen bg-gray-800 p-8">
-      <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Mis Equipos</h1>
+      <h1 className="text-3xl font-extrabold mb-6 text-center text-white">My Teams</h1>
 
       <div className="flex justify-center mb-6">
         <input
           type="text"
           value={teamFilter}
           onChange={(e) => setTeamFilter(e.target.value)}
-          placeholder="Buscar equipo por nombre"
-          className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Search team by name"
+          className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-64"
         />
         <button
           onClick={() => setIsCreating(true)}
           className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
         >
-          Nuevo Equipo
+          New Team
         </button>
       </div>
       {isCreating && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
           <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
-            <h2 className="text-2xl font-semibold text-white mb-4">Nuevo Equipo</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">New Team</h2>
             <input
               type="text"
               value={nombreEquipo}
               onChange={(e) => setNombreEquipo(e.target.value)}
-              placeholder="Nombre del equipo"
+              placeholder="Team name"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <input
               type="text"
               value={descripcionEquipo}
               onChange={(e) => setDescripcionEquipo(e.target.value)}
-              placeholder="Descripción del equipo"
+              placeholder="Team description"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <div className="flex justify-end mt-4">
@@ -249,20 +249,20 @@ const Teams = () => {
                 onClick={() => setIsCreating(false)}
                 className="px-2 py-2 text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleCreateTeam}
                 className="px-7 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
               >
-                Crear
+                Create
               </button>
             </div>
           </div>
         </div>
       )}
       {isLoading ? (
-        // Mostrar skeleton loader
+        // Show skeleton loader
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
             <div
@@ -299,21 +299,21 @@ const Teams = () => {
                   onClick={() => setShowModal({ ...showModal, [team.id]: true })}
                   className="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
                 >
-                  Añadir Usuario
+                  Add User
                 </button>
                 {showModal[team.id] && (
                   <div className="fixed inset-0 flex items-center justify-center z-50">
                     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
                     <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
-                      <h2 className="text-xl font-semibold text-white mb-4">Buscar por email</h2>
+                      <h2 className="text-xl font-semibold text-white mb-4">Search by email</h2>
                       <input
                         type="text"
                         value={emailFilters[team.id] || ''}
                         onChange={(e) => handleFilterUsers(team.id, e.target.value)}
-                        placeholder="Filtrar por correo"
+                        placeholder="Filter by email"
                         className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
                       />
-                      <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
+                      <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 text-gray-200 overflow-y-auto">
                         {(filteredUsers[team.id] || []).map((user) => (
                           <li
                             key={user.id}
@@ -333,13 +333,13 @@ const Teams = () => {
                           onClick={() => setShowModal({ ...showModal, [team.id]: false })}
                           className="px-2 py-2 text-red-500 font-semibold rounded border-solid border-2 border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
                         >
-                          Cancelar
+                          Cancel
                         </button>
                         <button
                           onClick={() => handleAddUserToTeam(team.id)}
                           className="px-6 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
                         >
-                          Añadir
+                          Add
                         </button>
                       </div>
                     </div>
@@ -351,7 +351,7 @@ const Teams = () => {
                   type="text"
                   value={memberFilters[team.id] || ''}
                   onChange={(e) => handleFilterMembers(team.id, e.target.value)}
-                  placeholder="Buscar colaborador"
+                  placeholder="Search collaborator"
                   className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
                 <ul className="bg-gray-600 rounded-lg shadow-md max-h-40 overflow-y-auto">
@@ -363,7 +363,7 @@ const Teams = () => {
                       <li key={member.id} className="p-2 text-white">
                         {member.nombre} ({member.email}){' '}
                         {member.es_creador && (
-                          <span className="text-yellow-500">(Creador)</span>
+                          <span className="text-yellow-500">(Creator)</span>
                         )}
                       </li>
                     ))}
