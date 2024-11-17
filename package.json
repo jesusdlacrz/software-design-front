@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.60.5",
