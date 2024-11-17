@@ -1,7 +1,27 @@
 import axios from "axios";
 import { API_URL } from "../environmentsVar/envVar";
 
-// obtener equipos de trabajo por usuario
+// Obtener miembros de un equipo
+export const getTeamMembers = async (teamId: number) => {
+  try {
+    const response = await axios.get(`${API_URL}usuariosEquipo/`, {
+      params: { equipo_trabajo: teamId },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al obtener miembros del equipo:", error.response?.data || error.message);
+    } else {
+      console.error("Error desconocido:", error);
+    }
+    throw error;
+  }
+};
+
+// Obtener equipos de trabajo por usuario
 export const getUserTeams = async (userId: string) => {
   try {
     const response = await axios.get(`${API_URL}usuariosEquipo/getEquipoTrabajoPerUser/`, {
@@ -21,7 +41,7 @@ export const getUserTeams = async (userId: string) => {
   }
 };
 
-// crear un nuevo equipo y asignarlo al usuario como creador
+// Crear un nuevo equipo y asignarlo al usuario como creador
 export const createTeam = async (userId: string, nombre_equipo: string, descripcion_equipo: string) => {
   try {
     const equipoResponse = await axios.post(
@@ -68,7 +88,54 @@ export const createTeam = async (userId: string, nombre_equipo: string, descripc
   }
 };
 
-// eliminar un equipo
+// Obtener todos los usuarios
+export const getAllUsers = async () => {
+  try {
+    const response = await axios.get(`${API_URL}usuarios/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al obtener usuarios:", error.response?.data || error.message);
+    } else {
+      console.error("Error desconocido:", error);
+    }
+    throw error;
+  }
+};
+
+// Añadir usuario a un equipo
+export const addUserToTeam = async (userId: number, teamId: number) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}usuariosEquipo/`,
+      {
+        usuario: userId,
+        equipo_trabajo: teamId,
+        es_creador: false,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al añadir usuario al equipo:", error.response?.data || error.message);
+    } else {
+      console.error("Error desconocido:", error);
+    }
+    throw error;
+  }
+};
+
+// Eliminar un equipo
 export const deleteTeam = async (teamId: number) => {
   try {
     const response = await axios.delete(`${API_URL}equipos/${teamId}/`, {
@@ -87,8 +154,7 @@ export const deleteTeam = async (teamId: number) => {
   }
 };
 
-
-// eliminar usuario del equipo
+// Eliminar usuario del equipo
 export const deleteUsuarioEquipo = async (usuarioEquipoId: number) => {
   try {
     const response = await axios.delete(`${API_URL}usuariosEquipo/${usuarioEquipoId}/`, {

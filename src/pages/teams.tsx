@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserTeams, createTeam, deleteTeam, deleteUsuarioEquipo } from '../services/teamsUser.service';
+import { getUserTeams, createTeam, deleteTeam, deleteUsuarioEquipo, getAllUsers, addUserToTeam } from '../services/teamsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
@@ -12,11 +12,21 @@ interface Team {
   usuarioEquipoId?: number;
 }
 
+interface User {
+  id: number;
+  nombre: string;
+  email: string;
+}
+
 const Teams = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<{ [key: number]: User[] }>({});
   const [nombreEquipo, setNombreEquipo] = useState('');
   const [descripcionEquipo, setDescripcionEquipo] = useState('');
+  const [emailFilter, setEmailFilter] = useState<{ [key: number]: string }>({});
+  const [selectedUserId, setSelectedUserId] = useState<{ [key: number]: number | null }>({});
   const [isCreating, setIsCreating] = useState(false);
   const userId = localStorage.getItem('userId');
 
@@ -35,7 +45,19 @@ const Teams = () => {
         navigate('/login');
       }
     };
+
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getAllUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error('Error al cargar los usuarios:', error);
+        toast.error('Error al cargar los usuarios');
+      }
+    };
+
     fetchTeams();
+    fetchUsers();
   }, [userId, navigate]);
 
   const handleTeamClick = (teamId: number) => {
@@ -96,18 +118,42 @@ const Teams = () => {
     });
   };
 
+  const handleFilterUsers = (teamId: number, email: string) => {
+    setEmailFilter({ ...emailFilter, [teamId]: email });
+    const filtered = users.filter(user => user.email.includes(email));
+    setFilteredUsers({ ...filteredUsers, [teamId]: filtered });
+  };
+
+  const handleAddUserToTeam = async (teamId: number) => {
+    if (selectedUserId[teamId] === null) {
+      toast.error("Por favor seleccione un usuario");
+      return;
+    }
+
+    try {
+      await addUserToTeam(selectedUserId[teamId]!, teamId);
+      toast.success("Usuario añadido al equipo exitosamente");
+      setSelectedUserId({ ...selectedUserId, [teamId]: null });
+      setEmailFilter({ ...emailFilter, [teamId]: '' });
+      setFilteredUsers({ ...filteredUsers, [teamId]: [] });
+    } catch (error) {
+      console.error("Error al añadir usuario al equipo:", error);
+      toast.error("Error al añadir usuario al equipo");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-800 p-8">
       <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Mis Equipos</h1>
 
       <div className="flex justify-center mb-6">
-            <button
-              onClick={() => setIsCreating(!isCreating)}
-              className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
-            >
-              {isCreating ? 'Cancelar' : 'Crear Nuevo Equipo'}
-            </button>
-          </div>
+        <button
+          onClick={() => setIsCreating(!isCreating)}
+          className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
+        >
+          {isCreating ? 'Cancelar' : 'Crear Nuevo Equipo'}
+        </button>
+      </div>
       {isCreating && (
         <div className="max-w-md mx-auto mb-8 p-6 bg-gray-700 rounded-lg shadow-md transform transition duration-300 ease-in-out scale-100">
           <h2 className="text-2xl font-semibold text-white mb-4">Nuevo Equipo</h2>
@@ -117,15 +163,14 @@ const Teams = () => {
             onChange={(e) => setNombreEquipo(e.target.value)}
             placeholder="Nombre del equipo"
             className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-
+          />
           <input
             type="text"
             value={descripcionEquipo}
             onChange={(e) => setDescripcionEquipo(e.target.value)}
             placeholder="Descripción del equipo"
             className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
+          />
           <button
             onClick={handleCreateTeam}
             className="w-full px-4 py-2 bg-indigo-500 text-white font-semibold rounded hover:bg-indigo-600 transition ease-in-out"
@@ -144,6 +189,32 @@ const Teams = () => {
               {team.nombre_equipo}
             </h2>
             <p className="text-gray-300 mt-2">{team.descripcion_equipo}</p>
+            <div className="mt-4">
+              <input
+                type="text"
+                value={emailFilter[team.id] || ''}
+                onChange={(e) => handleFilterUsers(team.id, e.target.value)}
+                placeholder="Filtrar por correo"
+                className="mb-3 p-2 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <ul className="bg-gray-600 rounded-lg shadow-md">
+                {filteredUsers[team.id]?.map(user => (
+                  <li
+                    key={user.id}
+                    className={`p-2 cursor-pointer ${selectedUserId[team.id] === user.id ? 'bg-indigo-500' : 'hover:bg-gray-500'}`}
+                    onClick={() => setSelectedUserId({ ...selectedUserId, [team.id]: user.id })}
+                  >
+                    {user.email}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => handleAddUserToTeam(team.id)}
+                className="mt-2 w-full px-4 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+              >
+                Añadir Usuario
+              </button>
+            </div>
             <button
               onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
               className="inline-flex items-center mt-2 px-4 py-2 bg-red-600 transition ease-in-out delay-75 hover:bg-red-700 text-white text-sm font-medium rounded-md"
