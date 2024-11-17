@@ -36,13 +36,13 @@ const Projects = () => {
           const fetchedProjects = await getTeamProjects(teamId);
           setProjects(fetchedProjects);
         } catch (error) {
-          console.error('Error al cargar los proyectos:', error);
-          toast.error('Error al cargar los proyectos');
+          console.error('Error loading projects:', error);
+          toast.error('Error loading projects');
         } finally {
           setIsLoading(false);
         }
       } else {
-        toast.error('Equipo no seleccionado');
+        toast.error('Team not selected');
         navigate('/teams');
       }
     };
@@ -58,7 +58,7 @@ const Projects = () => {
       !newProject.fecha_fin_proyecto ||
       !newProject.estado_proyecto
     ) {
-      toast.error('Por favor completa todos los campos');
+      toast.error('Please complete all fields');
       return;
     }
 
@@ -69,7 +69,7 @@ const Projects = () => {
           equipo_trabajo: parseInt(teamId),
         });
         setProjects([...projects, createdProject]);
-        toast.success('Proyecto creado con éxito');
+        toast.success('Project created successfully');
         setNewProject({
           nombre_proyecto: '',
           descripcion_proyecto: '',
@@ -79,25 +79,25 @@ const Projects = () => {
         });
         setIsCreating(false);
       } catch {
-        toast.error('Error al crear proyecto');
+        toast.error('Error creating project');
       }
     }
   };
 
   const handleDeleteProject = async (projectId: number) => {
     confirmAlert({
-      title: 'Confirmar eliminación',
-      message: '¿Está seguro de que desea eliminar este proyecto?',
+      title: 'Confirm deletion',
+      message: 'Are you sure you want to delete this project?',
       buttons: [
         {
-          label: 'Sí',
+          label: 'Yes',
           onClick: async () => {
             try {
               await deleteProject(projectId);
               setProjects(projects.filter((project) => project.id !== projectId));
-              toast.success('Proyecto eliminado con éxito');
+              toast.success('Project deleted successfully');
             } catch {
-              toast.error('Error al eliminar proyecto');
+              toast.error('Error deleting project');
             }
           },
         },
@@ -120,7 +120,7 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-gray-800 p-8">
       <h1 className="text-3xl font-extrabold mb-6 text-center text-white">
-        Proyectos del Equipo {teamId}
+        Team Projects {teamId}
       </h1>
 
       <div className="flex justify-center mb-6">
@@ -128,14 +128,14 @@ const Projects = () => {
           type="text"
           value={projectFilter}
           onChange={(e) => setProjectFilter(e.target.value)}
-          placeholder="Buscar proyecto por nombre"
+          placeholder="Search project by name"
           className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-64"
         />
         <button
           onClick={() => setIsCreating(true)}
           className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
         >
-          Nuevo Proyecto
+          New Project
         </button>
       </div>
 
@@ -143,12 +143,12 @@ const Projects = () => {
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
           <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
-            <h2 className="text-2xl font-semibold text-white mb-4">Nuevo Proyecto</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">New Project</h2>
             <input
               type="text"
               value={newProject.nombre_proyecto}
               onChange={(e) => setNewProject({ ...newProject, nombre_proyecto: e.target.value })}
-              placeholder="Nombre del Proyecto"
+              placeholder="Project Name"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <input
@@ -157,7 +157,7 @@ const Projects = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, descripcion_proyecto: e.target.value })
               }
-              placeholder="Descripción"
+              placeholder="Description"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <input
@@ -166,7 +166,7 @@ const Projects = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, fecha_inicio_proyecto: e.target.value })
               }
-              placeholder="Fecha Inicio"
+              placeholder="Start Date"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <input
@@ -175,7 +175,7 @@ const Projects = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, fecha_fin_proyecto: e.target.value })
               }
-              placeholder="Fecha Fin"
+              placeholder="End Date"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <input
@@ -184,7 +184,7 @@ const Projects = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, estado_proyecto: e.target.value })
               }
-              placeholder="Estado"
+              placeholder="Status"
               className="mb-3 p-3 bg-gray-600 border border-gray-500 rounded w-full text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             <div className="flex justify-end mt-4">
@@ -192,13 +192,13 @@ const Projects = () => {
                 onClick={() => setIsCreating(false)}
                 className="px-2 py-2 text-red-500 font-semibold rounded border border-red-600 hover:text-white hover:bg-red-600 transition ease-in-out mr-2"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleCreateProject}
                 className="px-7 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
               >
-                Crear
+                Create
               </button>
             </div>
           </div>
@@ -235,17 +235,17 @@ const Projects = () => {
                 {project.nombre_proyecto}
               </h2>
               <p className="text-gray-300 mt-2 break-words">{project.descripcion_proyecto}</p>
-              <p className="text-gray-400">Estado: {project.estado_proyecto}</p>
-              <p className="text-gray-400">
-                Fecha inicio: {project.fecha_inicio_proyecto} - Fecha fin:{' '}
-                {project.fecha_fin_proyecto}
+              <p className="text-gray-400">Status: {project.estado_proyecto}</p>
+              <p className="text-gray-400 mb-12">
+                Start Date: {project.fecha_inicio_proyecto} - End Date: {project.fecha_fin_proyecto}
               </p>
+              <div className="flex justify-end mt-4 absolute right-6 bottom-6">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteProject(project.id);
                 }}
-                className="absolute top-6 right-6 px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border border-red-600 transition ease-in-out"
+                className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
               >
                 <svg
                   stroke="currentColor"
@@ -262,6 +262,7 @@ const Projects = () => {
                   ></path>
                 </svg>
               </button>
+            </div>
             </div>
           ))}
         </div>

@@ -33,6 +33,8 @@ interface TeamMember {
   es_creador: boolean;
 }
 
+
+
 const Teams = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
@@ -262,7 +264,6 @@ const Teams = () => {
         </div>
       )}
       {isLoading ? (
-        // Show skeleton loader
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
             <div
