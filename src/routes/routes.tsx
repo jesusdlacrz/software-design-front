@@ -5,8 +5,13 @@ import Teams from '../pages/teams';
 import Projects from '../pages/projects';
 import Sprints from '../pages/sprints';
 import Tasks from '../pages/tasks';
+import LandingPage from '../pages/home';
 
 export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <LandingPage />,
+  },
   {
     path: '/login',
     element: <Login />,
