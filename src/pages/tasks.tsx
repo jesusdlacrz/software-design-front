@@ -1,7 +1,7 @@
 // src/pages/tasks.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createTask, getTasks, deleteTask, getUser} from '../services/tasks.service';
+import { createTask, getTasks, deleteTask, getUser } from '../services/tasks.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { getUsersByTeam } from '../services/usuariosPorEquipo.service';
 
@@ -12,31 +12,24 @@ interface Task {
   estado_tarea: string;
   fecha_inicio_tarea: string;
   fecha_fin_tarea: string;
-  usuario: {
-    id: number;
-    nombre: string;
-  };
+  usuario: number;
 }
 
 const Tasks = () => {
   const navigate = useNavigate();
-  const { id, sprintId } = useParams<{
-    id: string;
-    sprintId: string;
-  }>();
+  const { id, sprintId } = useParams<{ id: string; sprintId: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState({
     nombre_tarea: '',
     descripcion_tarea: '',
     estado_tarea: '',
-    usuario: '', // Cambiado a usuario_id
+    usuario: '',
     fecha_fin_tarea: '',
   });
   const [users, setUsers] = useState<{ id: number; nombre: string }[]>([]);
   const [taskFilter, setTaskFilter] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [userName, setUserName] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
@@ -63,21 +56,12 @@ const Tasks = () => {
     fetchTasks();
   }, [sprintId, navigate]);
 
-
   useEffect(() => {
     const fetchUsers = async () => {
-      console.log('este es el id: ' + id);
       if (id) {
         try {
           const data = await getUsersByTeam(Number(id));
-          console.log('Usuarios obtenidos:', data);
-          // Mapea los datos para obtener solo id y nombre
-          const usersList = data.map((user: any) => ({
-            id: user.id,
-            nombre: user.nombre,
-          }));
-          console.log('Usuarios mapeados:', usersList);
-          setUsers(usersList);
+          setUsers(data);
         } catch (error) {
           console.error('Error al cargar los usuarios:', error);
           toast.error('Error al cargar los usuarios');
@@ -90,14 +74,13 @@ const Tasks = () => {
     fetchUsers();
   }, [id]);
 
-  // Aquí implementamos handleCreateTask
   const handleCreateTask = async () => {
     if (sprintId) {
       try {
         const createdTask = await createTask({
           ...newTask,
           sprint: parseInt(sprintId),
-          usuario: parseInt(newTask.usuario), // Convertimos a número
+          usuario: parseInt(newTask.usuario),
         });
         setTasks([...tasks, createdTask]);
         toast.success('Tarea creada con éxito');
@@ -135,70 +118,45 @@ const Tasks = () => {
     }
   };
 
+  const handleTaskClick = () => {
+    // Implementar la lógica para manejar el clic en una tarea
+  };
+
   const filteredTasks = tasks.filter((task) =>
     task.nombre_tarea.toLowerCase().includes(taskFilter.toLowerCase())
   );
 
-  const handleTaskClick = () => {
-    
+  const getUserName = (userId: number) => {
+    const user = users.find((user) => user.id === userId);
+    return user ? user.nombre : 'Desconocido';
   };
-
-  
-
-  const fetchUserName = async (userId: number) => {
-    try {
-      const response = await getUser(userId);
-      return response.nombre;
-    } catch (error) {
-      console.error("Error fetching user name:", error);
-      return "Unknown";
-    }
-  };
-
-  useEffect(() => {
-    const fetchAndSetUserName = async () => {
-      if (newTask.usuario) {
-        const name = await fetchUserName(Number(newTask.usuario));
-        setUserName(name);
-      }
-    };
-
-    fetchAndSetUserName();
-  }, [newTask.usuario]);
 
   return (
     <div className="min-h-screen bg-gray-800 p-8">
       <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Tareas del Sprint {sprintId}</h1>
-      {/* Formulario para crear una nueva tarea */}
       <div className="mb-8">
         <div className="flex justify-center mb-6">
           <input
             type="text"
             value={taskFilter}
             onChange={(e) => setTaskFilter(e.target.value)}
-            placeholder="Search task by name"
+            placeholder="Buscar tarea por nombre"
             className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-64"
           />
           <button
             onClick={() => setIsCreating(true)}
             className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
           >
-            New Task
+            Nueva Tarea
           </button>
         </div>
       </div>
-      {/* Lista de tareas existentes */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
-            <div
-              key={item}
-              className="animate-pulse flex flex-col items-center gap-4 p-6 bg-gray-700 rounded-lg"
-            >
-              <div>
-                <div className="w-48 h-6 bg-slate-400 rounded-md"></div>
-                <div className="w-28 h-4 bg-slate-400 mt-3 rounded-md"></div>
-              </div>
+            <div key={item} className="animate-pulse flex flex-col items-center gap-4 p-6 bg-gray-700 rounded-lg">
+              <div className="w-48 h-6 bg-slate-400 rounded-md"></div>
+              <div className="w-28 h-4 bg-slate-400 mt-3 rounded-md"></div>
               <div className="h-7 bg-slate-400 w-full rounded-md"></div>
               <div className="h-7 bg-slate-400 w-full rounded-md"></div>
               <div className="h-7 bg-slate-400 w-full rounded-md"></div>
@@ -218,18 +176,18 @@ const Tasks = () => {
                 {task.nombre_tarea}
               </h2>
               <p className="text-gray-300 mt-2 break-words">{task.descripcion_tarea}</p>
-              <p className="text-gray-400 mt-2">Incharge: {userName}</p>
-              <p className="text-gray-400">Status: {task.estado_tarea}</p>
-              <p className="text-gray-400">Start Date: {task.fecha_inicio_tarea}</p>
-              <p className="text-gray-400 mb-12">Due Date: {task.fecha_fin_tarea}</p>
+              <p className="text-gray-400 mt-2">Encargado: {getUserName(task.usuario)}</p>
+              <p className="text-gray-400">Estado: {task.estado_tarea}</p>
+              <p className="text-gray-400">Fecha de inicio: {task.fecha_inicio_tarea}</p>
+              <p className="text-gray-400 mb-12">Fecha de fin: {task.fecha_fin_tarea}</p>
               <div className="flex justify-end mt-4 absolute right-6 bottom-6">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDeleting(true);
-                  setTaskToDelete(task.id);
-                }}
-                  className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDeleting(true);
+                    setTaskToDelete(task.id);
+                  }}
+                  className="px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
                 >
                   <svg
                     stroke="currentColor"
@@ -239,7 +197,7 @@ const Tasks = () => {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1 1v3M4 7h16"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                       strokeWidth="2"
                       strokeLinejoin="round"
                       strokeLinecap="round"
@@ -342,5 +300,6 @@ const Tasks = () => {
       <ToastContainer />
     </div>
   );
-}
+};
+
 export default Tasks;
