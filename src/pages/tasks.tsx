@@ -1,7 +1,7 @@
 // src/pages/tasks.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createTask, getTasks, deleteTask, getUser } from '../services/tasks.service';
+import { createTask, getTasks, deleteTask } from '../services/tasks.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { getUsersByTeam } from '../services/usuariosPorEquipo.service';
 
