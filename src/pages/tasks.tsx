@@ -1,124 +1,206 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+// src/pages/tasks.tsx
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createTask, getTasks } from '../services/tasks.service';
+import { ToastContainer, toast } from 'react-toastify';
+import { getUsersByTeam } from '../services/usuariosPorEquipo.service';
 
 interface Task {
   id: number;
-  title: string;
-  assignee: string;
-  status: 'No iniciado' | 'En proceso' | 'Terminada';
-  comments: string[];
+  nombre_tarea: string;
+  descripcion_tarea: string;
+  estado_tarea: string;
+  usuario: {
+    id: number;
+    nombre: string;
+  };
 }
 
 const Tasks = () => {
-  const { projectId, sprintId } = useParams<{ projectId: string; sprintId: string }>();
+  const navigate = useNavigate();
+  const { id ,projectId, sprintId } = useParams<{
+    id: string;
+    projectId: string;
+    sprintId: string;
+  }>();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState({
+    nombre_tarea: '',
+    descripcion_tarea: '',
+    estado_tarea: '',
+    usuario: '', // Cambiado a usuario_id
+    fecha_fin_tarea: '',
+  });
+  const [users, setUsers] = useState<{ id: number; nombre: string }[]>([]);
+  
 
-  // datos de relleno
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: 'Tarea 1',
-      assignee: 'Juan Pérez',
-      status: 'No iniciado',
-      comments: ['Comentario inicial'],
-    },
-    {
-      id: 2,
-      title: 'Tarea 2',
-      assignee: 'María García',
-      status: 'En proceso',
-      comments: [],
-    },
-  ]);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (sprintId) {
+        try {
+          const data = await getTasks(Number(sprintId));
+          setTasks(data);
+        } catch (error) {
+          console.error('Error al cargar las tareas:', error);
+          toast.error('Error al cargar las tareas');
+        }
+      } else {
+        toast.error('Sprint no seleccionado');
+        navigate('/sprints');
+      }
+    };
+  
+    fetchTasks();
+  }, [sprintId, navigate]);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [newComment, setNewComment] = useState('');
+  useEffect(() => {
+    const fetchUsers = async () => {
+      console.log('este es el id: ' + id);
+      if (id) {
+        try {
+          const data = await getUsersByTeam(Number(id));
+          console.log('Usuarios obtenidos:', data);
+          // Mapea los datos para obtener solo id y nombre
+          const usersList = data.map((user: any) => ({
+            id: user.id,
+            nombre: user.nombre,
+          }));
+          console.log('Usuarios mapeados:', usersList);
+          setUsers(usersList);
+        } catch (error) {
+          console.error('Error al cargar los usuarios:', error);
+          toast.error('Error al cargar los usuarios');
+        }
+      } else {
+        console.error('teamId no está definido');
+      }
+    };
 
-  const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-  };
+    fetchUsers();
+  }, [id]);
 
-  const handleStatusChange = (status: Task['status']) => {
-    if (selectedTask) {
-      setSelectedTask({ ...selectedTask, status });
-      setTasks(tasks.map(t => (t.id === selectedTask.id ? { ...t, status } : t)));
+  // Aquí implementamos handleCreateTask
+  const handleCreateTask = async () => {
+    if (sprintId) {
+      try {
+        const createdTask = await createTask({
+          ...newTask,
+          sprint: parseInt(sprintId),
+          usuario: parseInt(newTask.usuario), // Convertimos a número
+        });
+        setTasks([...tasks, createdTask]);
+        toast.success('Tarea creada con éxito');
+        setNewTask({
+          nombre_tarea: '',
+          descripcion_tarea: '',
+          estado_tarea: '',
+          usuario: '',
+          fecha_fin_tarea: '',
+        });
+      } catch (error) {
+        console.error('Error al crear la tarea:', error);
+        toast.error('Error al crear la tarea');
+      }
     }
   };
 
-  const handleAddComment = () => {
-    if (selectedTask && newComment) {
-      const updatedTask = {
-        ...selectedTask,
-        comments: [...selectedTask.comments, newComment],
-      };
-      setSelectedTask(updatedTask);
-      setTasks(tasks.map(t => (t.id === selectedTask.id ? updatedTask : t)));
-      setNewComment('');
-    }
+  const handleTaskClick = (taskId: number) => {
+    localStorage.setItem('taskId', taskId.toString());
+    navigate(`/teams/${id}/projects/${projectId}/sprints/${sprintId}/tasks/${taskId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold mb-4">
-        Tareas del Sprint {sprintId} en el Proyecto {projectId}
-      </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <h1 className="text-3xl font-bold mb-4">Tareas del Sprint {sprintId}</h1>
+      {/* Formulario para crear una nueva tarea */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Crear Nueva Tarea</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateTask();
+          }}
+        >
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Nombre de la Tarea</label>
+            <input
+              type="text"
+              value={newTask.nombre_tarea}
+              onChange={(e) => setNewTask({ ...newTask, nombre_tarea: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Descripción</label>
+            <textarea
+              value={newTask.descripcion_tarea}
+              onChange={(e) => setNewTask({ ...newTask, descripcion_tarea: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            ></textarea>
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Estado</label>
+            <input
+              type="text"
+              value={newTask.estado_tarea}
+              onChange={(e) => setNewTask({ ...newTask, estado_tarea: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Fecha de Fin</label>
+            <input
+              type="date"
+              value={newTask.fecha_fin_tarea}
+              onChange={(e) => setNewTask({ ...newTask, fecha_fin_tarea: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Asignar a Usuario</label>
+            <select
+              value={newTask.usuario}
+              onChange={(e) => setNewTask({ ...newTask, usuario: e.target.value })}
+              className="w-full p-2 border rounded"
+              required
+            >
+              <option value="">Seleccione un usuario</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="px-4 py-2 font-semibold text-white bg-blue-500 rounded hover:bg-blue-600"
+          >
+            Crear Tarea
+          </button>
+        </form>
+      </div>
+      {/* Lista de tareas existentes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {tasks.map((task) => (
           <div
             key={task.id}
             className="p-4 bg-white rounded shadow cursor-pointer hover:bg-gray-50"
-            onClick={() => handleTaskClick(task)}
+            onClick={() => handleTaskClick(task.id)}
           >
-            <h2 className="text-xl font-semibold">{task.title}</h2>
-            <p>Encargado: {task.assignee}</p>
-            <p>Estado: {task.status}</p>
+            <h2 className="text-xl font-semibold">{task.nombre_tarea}</h2>
+            <p className="text-gray-600">{task.descripcion_tarea}</p>
+            <p className="text-gray-500">Estado: {task.estado_tarea}</p>
+            <p className="text-gray-500">Encargado: {task.usuario.nombre}</p>
           </div>
         ))}
       </div>
-
-      {selectedTask && (
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-2xl font-bold mb-2">{selectedTask.title}</h2>
-          <p><strong>Encargado:</strong> {selectedTask.assignee}</p>
-          <p>
-            <strong>Estado:</strong> {selectedTask.status}
-          </p>
-          <div className="mt-2">
-            <label className="font-semibold mr-2">Cambiar Estado:</label>
-            <select
-              value={selectedTask.status}
-              onChange={(e) => handleStatusChange(e.target.value as Task['status'])}
-              className="border rounded px-2 py-1"
-            >
-              <option value="No iniciado">No iniciado</option>
-              <option value="En proceso">En proceso</option>
-              <option value="Terminada">Terminada</option>
-            </select>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold">Comentarios:</h3>
-            <ul className="list-disc ml-5 mb-2">
-              {selectedTask.comments.map((comment, index) => (
-                <li key={index}>{comment}</li>
-              ))}
-            </ul>
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Agregar comentario"
-              className="border rounded px-2 py-1 mr-2"
-            />
-            <button
-              onClick={handleAddComment}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Agregar
-            </button>
-          </div>
-        </div>
-      )}
+      <ToastContainer />
     </div>
   );
-};
-
+}
 export default Tasks;
