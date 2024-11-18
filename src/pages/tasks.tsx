@@ -1,7 +1,7 @@
 // src/pages/tasks.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createTask, getTasks, deleteTask, getUser } from '../services/tasks.service';
+import { createTask, getTasks, deleteTask } from '../services/tasks.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { getUsersByTeam } from '../services/usuariosPorEquipo.service';
 
@@ -20,9 +20,8 @@ interface Task {
 
 const Tasks = () => {
   const navigate = useNavigate();
-  const { id ,projectId, sprintId } = useParams<{
+  const { id, sprintId } = useParams<{
     id: string;
-    projectId: string;
     sprintId: string;
   }>();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -128,7 +127,7 @@ const Tasks = () => {
     task.nombre_tarea.toLowerCase().includes(taskFilter.toLowerCase())
   );
 
-  const handleTaskClick = (taskId: number) => {
+  const handleTaskClick = () => {
     
   };
 
@@ -178,7 +177,7 @@ const Tasks = () => {
             <div
               key={task.id}
               className="relative p-6 bg-gray-700 rounded-lg shadow hover:shadow-lg transition ease-in-out"
-              onClick={() => handleTaskClick(task.id)}
+              onClick={() => handleTaskClick()}
             >
               <h2 className="text-xl font-semibold text-indigo-500 cursor-pointer hover:text-indigo-400 transition break-words">
                 {task.nombre_tarea}
