@@ -100,14 +100,14 @@ const Sprints = () => {
           type="text"
           value={sprintFilter}
           onChange={(e) => setSprintFilter(e.target.value)}
-          placeholder="Buscar sprint..."
-          className="px-4 py-2 rounded bg-gray-700 text-white w-full max-w-md"
+          placeholder="Search sprint by name"
+          className="mr-4 p-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-64"
         />
         <button
           onClick={() => setIsCreating(true)}
-          className="ml-4 px-4 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition ease-in-out"
+          className="text-white bg-indigo-500 hover:bg-indigo-600 transition ease-in-out text-sm px-4 py-2 border border-indigo-500 rounded focus:outline-none"
         >
-          Crear Nuevo Sprint
+          New Sprint
         </button>
       </div>
 
