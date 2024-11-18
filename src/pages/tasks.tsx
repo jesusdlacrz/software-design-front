@@ -1,7 +1,7 @@
 // src/pages/tasks.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createTask, getTasks, deleteTask } from '../services/tasks.service';
+import { createTask, getTasks, deleteTask, getUser} from '../services/tasks.service';
 import { ToastContainer, toast } from 'react-toastify';
 import { getUsersByTeam } from '../services/usuariosPorEquipo.service';
 
@@ -36,6 +36,7 @@ const Tasks = () => {
   const [taskFilter, setTaskFilter] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -59,6 +60,7 @@ const Tasks = () => {
 
     fetchTasks();
   }, [sprintId, navigate]);
+
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -131,6 +133,29 @@ const Tasks = () => {
     
   };
 
+  
+
+  const fetchUserName = async (userId: number) => {
+    try {
+      const response = await getUser(userId);
+      return response.nombre;
+    } catch (error) {
+      console.error("Error fetching user name:", error);
+      return "Unknown";
+    }
+  };
+
+  useEffect(() => {
+    const fetchAndSetUserName = async () => {
+      if (newTask.usuario) {
+        const name = await fetchUserName(Number(newTask.usuario));
+        setUserName(name);
+      }
+    };
+
+    fetchAndSetUserName();
+  }, [newTask.usuario]);
+
   return (
     <div className="min-h-screen bg-gray-800 p-8">
       <h1 className="text-3xl font-extrabold mb-6 text-center text-white">Tareas del Sprint {sprintId}</h1>
@@ -183,7 +208,7 @@ const Tasks = () => {
                 {task.nombre_tarea}
               </h2>
               <p className="text-gray-300 mt-2 break-words">{task.descripcion_tarea}</p>
-              <p className="text-gray-400 mt-2">Incharge: {}</p>
+              <p className="text-gray-400 mt-2">Incharge: {userName}</p>
               <p className="text-gray-400">Status: {task.estado_tarea}</p>
               <p className="text-gray-400">Start Date: {task.fecha_inicio_tarea}</p>
               <p className="text-gray-400 mb-12">Due Date: {task.fecha_fin_tarea}</p>
