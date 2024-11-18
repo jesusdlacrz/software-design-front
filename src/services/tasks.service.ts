@@ -21,6 +21,24 @@ export const getTasks = async ( sprintId: number ) => {
   }
 };
 
+export const getUser = async ( userId: number ) => {
+  try {
+    const response = await axios.get(`${API_URL}usuarios/${userId}/`,{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error al obtener el usuario:', error.response?.data || error.message);
+    } else {
+      console.error('Error desconocido:', error);
+    }
+    throw error;
+  }
+}
+
 interface NewTask {
   nombre_tarea: string;
   descripcion_tarea: string;
@@ -53,17 +71,18 @@ export const createTask = async (taskData: NewTask) => {
 // Eliminar una tarea
 export const deleteTask = async (taskId: number) => {
   try {
+    const token = localStorage.getItem('access_token');
     const response = await axios.delete(`${API_URL}tareas/${taskId}/`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error al eliminar la tarea:", error.response?.data || error.message);
+      console.error('Error al eliminar la tarea:', error.response?.data || error.message);
     } else {
-      console.error("Error desconocido:", error);
+      console.error('Error desconocido:', error);
     }
     throw error;
   }
