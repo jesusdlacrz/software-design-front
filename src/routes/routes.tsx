@@ -29,11 +29,11 @@ export const router = createBrowserRouter([
     element: <Projects />,
   },
   {
-    path: '/teams/:id/projects/:projectId',
+    path: '/teams/:id/projects/:projectId/sprints',
     element: <Sprints />,
   },
   {
-    path: '/projects/:projectId/sprints/:sprintId',
+    path: '/teams/:id/projects/:projectId/sprints/:sprintId/tasks',
     element: <Tasks />,
   },
 ]);

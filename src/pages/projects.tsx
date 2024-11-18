@@ -110,7 +110,7 @@ const Projects = () => {
   };
 
   const handleProjectClick = (projectId: number) => {
-    navigate(`/teams/${teamId}/projects/${projectId}`);
+    navigate(`/teams/${teamId}/projects/${projectId}/sprints`);
   };
 
   const filteredProjects = projects.filter((project) =>
