@@ -31,37 +31,75 @@ const Register = () => {
         }}
         className="bg-gray-800 rounded-lg shadow-xl overflow-hidden max-w-lg w-full"
       >
-        <form onSubmit={handleRegister}>
-          <div className="p-8">
-            <h1 className="text-2xl font-bold text-white mb-6">Register</h1>
-            <input
-              type="text"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mb-4 p-2 w-full"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mb-4 p-2 w-full"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mb-4 p-2 w-full"
-            />
-            <button type="submit" className="bg-blue-500 text-white p-2 w-full">
-              Register
-            </button>
-          </div>
-        </form>
+        <div className="p-8">
+          <h2 className="text-center text-3xl font-extrabold text-white">
+            Register
+          </h2>
+          <p className="mt-4 text-center text-gray-400">
+          Let's create your account!
+          </p>
+          <form onSubmit={handleRegister} className="mt-8 space-y-6">
+            <div>
+              <label className="sr-only" htmlFor="name">Name</label>
+              <div className="relative">
+                <input
+                  placeholder="Username"
+                  className="w-full rounded-lg bg-gray-700 border-gray-300 p-4 pe-12 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="sr-only" htmlFor="email">Email</label>
+              <div className="relative">
+                <input
+                  placeholder="Email address"
+                  className="w-full rounded-lg bg-gray-700 border-gray-300 p-4 pe-12 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="sr-only" htmlFor="password">Password</label>
+              <div className="relative">
+                <input
+                  placeholder="Password"
+                  className="w-full rounded-lg bg-gray-700 border-gray-300 p-4 pe-12 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between mt-4">
+    
+              <button
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-indigo-500 hover:bg-indigo-600 ocus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
+                type="submit"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+        <div className="px-8 py-4 bg-gray-700 text-center">
+          <span className="text-gray-400">Already have an account?</span> {' '}
+          <a className="font-medium text-indigo-500 hover:text-indigo-400" onClick={() => navigate("/register")}>
+            Sign In
+          </a>
+        </div>
+        <ToastContainer />
       </div>
-      <ToastContainer />
     </div>
   );
 };
