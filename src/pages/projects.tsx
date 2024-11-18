@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTeamProjects, createProject, deleteProject } from '../services/projectsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 
 interface Project {
@@ -28,6 +27,8 @@ const Projects = () => {
   const [projectFilter, setProjectFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const teamId = localStorage.getItem('teamId');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -85,28 +86,22 @@ const Projects = () => {
   };
 
   const handleDeleteProject = async (projectId: number) => {
-    confirmAlert({
-      title: 'Confirm deletion',
-      message: 'Are you sure you want to delete this project?',
-      buttons: [
-        {
-          label: 'Yes',
-          onClick: async () => {
-            try {
-              await deleteProject(projectId);
-              setProjects(projects.filter((project) => project.id !== projectId));
-              toast.success('Project deleted successfully');
-            } catch {
-              toast.error('Error deleting project');
-            }
-          },
-        },
-        {
-          label: 'No',
-          onClick: () => {},
-        },
-      ],
-    });
+    try {
+      await deleteProject(projectId);
+      setProjects(projects.filter((project) => project.id !== projectId));
+      toast.success('Proyecto eliminado con éxito');
+    } catch (error) {
+      console.error('Error al eliminar el proyecto:', error);
+      toast.error('Error al eliminar el proyecto');
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (projectToDelete !== null) {
+      handleDeleteProject(projectToDelete);
+      setIsDeleting(false);
+      setProjectToDelete(null);
+    }
   };
 
   const handleProjectClick = (projectId: number) => {
@@ -205,6 +200,32 @@ const Projects = () => {
         </div>
       )}
 
+      {isDeleting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+          <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <h2 className="text-2xl font-semibold text-white mb-4">Confirmar Eliminación</h2>
+            <p className="text-gray-300 mb-6">
+              ¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsDeleting(false)}
+                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600 font-semibold rounded mr-2"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-7 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition ease-in-out"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
@@ -243,9 +264,10 @@ const Projects = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteProject(project.id);
+                  setIsDeleting(true);
+                  setProjectToDelete(project.id);
                 }}
-                className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
+                className="px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
               >
                 <svg
                   stroke="currentColor"

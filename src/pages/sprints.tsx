@@ -24,6 +24,8 @@ const Sprints = () => {
   const [sprintFilter, setSprintFilter] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+const [sprintToDelete, setSprintToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchSprints = async () => {
@@ -78,6 +80,14 @@ const Sprints = () => {
     } catch (error) {
       console.error('Error al eliminar el sprint:', error);
       toast.error('Error al eliminar el sprint');
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (sprintToDelete !== null) {
+      handleDeleteSprint(sprintToDelete);
+      setIsDeleting(false);
+      setSprintToDelete(null);
     }
   };
 
@@ -141,11 +151,12 @@ const Sprints = () => {
                 Due Date: {sprint.fecha_fin}
               </p>
               <div className="flex justify-end mt-4 absolute right-6 bottom-6">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteSprint(sprint.id);
-                  }}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleting(true);
+                  setSprintToDelete(sprint.id);
+                }}
                   className="px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
                 >
                   <svg
@@ -229,6 +240,32 @@ const Sprints = () => {
                 className="px-7 py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600"
               >
                 Crear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+          <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <h2 className="text-2xl font-semibold text-white mb-4">Confirmar Eliminación</h2>
+            <p className="text-gray-300 mb-6">
+              ¿Estás seguro de que deseas eliminar este sprint? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsDeleting(false)}
+                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600 font-semibold rounded mr-2"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-7 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition ease-in-out"
+              >
+                Eliminar
               </button>
             </div>
           </div>

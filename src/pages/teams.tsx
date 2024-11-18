@@ -4,13 +4,11 @@ import {
   getUserTeams,
   createTeam,
   deleteTeam,
-  deleteUsuarioEquipo,
   getAllUsers,
   addUserToTeam,
   getTeamMembers,
 } from '../services/teamsUser.service';
 import { ToastContainer, toast } from 'react-toastify';
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 
 interface Team {
@@ -51,6 +49,8 @@ const Teams = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [teamFilter, setTeamFilter] = useState(''); // New state for the filter
   const userId = localStorage.getItem('userId');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -120,33 +120,23 @@ const Teams = () => {
     }
   };
 
-  const handleDeleteTeam = async (teamId: number, usuarioEquipoId?: number) => {
-    confirmAlert({
-      title: 'Confirm deletion',
-      message: 'Are you sure you want to delete this team?',
-      buttons: [
-        {
-          label: 'Yes',
-          onClick: async () => {
-            try {
-              if (usuarioEquipoId) {
-                await deleteUsuarioEquipo(usuarioEquipoId);
-              }
-              await deleteTeam(teamId);
-              setTeams(teams.filter((team) => team.id !== teamId));
-              toast.success('Team deleted successfully');
-            } catch (error) {
-              console.error('Error in handleDeleteTeam:', error);
-              toast.error('Error deleting the team');
-            }
-          },
-        },
-        {
-          label: 'No',
-          onClick: () => {},
-        },
-      ],
-    });
+  const handleDeleteTeam = async (teamId: number) => {
+    try {
+      await deleteTeam(teamId);
+      setTeams(teams.filter((team) => team.id !== teamId));
+      toast.success('Equipo eliminado con éxito');
+    } catch (error) {
+      console.error('Error al eliminar el equipo:', error);
+      toast.error('Error al eliminar el equipo');
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (teamToDelete !== null) {
+      handleDeleteTeam(teamToDelete);
+      setIsDeleting(false);
+      setTeamToDelete(null);
+    }
   };
 
   const handleFilterUsers = (teamId: number, email: string) => {
@@ -372,10 +362,14 @@ const Teams = () => {
               </div>
               <div className="">
                 <div className="flex justify-end mt-4 absolute right-6 bottom-6">
-                  <button
-                    onClick={() => handleDeleteTeam(team.id, team.usuarioEquipoId)}
-                    className="px-4 inline-flex py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
-                  >
+                <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleting(true);
+                  setTeamToDelete(team.id);
+                }}
+                className="px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 font-semibold rounded border-dashed border-2 border-red-600 transition ease-in-out"
+              >
                     <svg
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -395,6 +389,31 @@ const Teams = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {isDeleting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+          <div className="relative bg-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <h2 className="text-2xl font-semibold text-white mb-4">Confirmar Eliminación</h2>
+            <p className="text-gray-300 mb-6">
+              ¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsDeleting(false)}
+                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600 font-semibold rounded mr-2"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-7 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition ease-in-out"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <ToastContainer />
